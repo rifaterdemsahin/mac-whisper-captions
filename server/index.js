@@ -109,16 +109,22 @@ function startWhisper() {
             if (match && match[1]) {
                 let text = match[1].trim();
                 
-                // Filter out common blank audio / silence artifacts from Whisper
-                const tLower = text.toLowerCase();
-                if (!text || tLower === '.' || tLower === '...' || tLower.includes('[blank_audio]') || tLower.includes('(silence)') || tLower.includes('*silence*') || tLower.includes('(music)') || tLower === 'thank you.') {
-                    continue; // Skip sending empty or junk noise to OBS
+                // 1. Aggressively strip environmental noise tags like [Keyboard typing], (coughs), *wind*
+                text = text.replace(/\[.*?\]|\(.*?\)|\*.*?\*/g, '').trim();
+
+                // 2. Filter out known Whisper hallucinations on silence (YouTube dataset artifacts)
+                const tLower = text.toLowerCase().replace(/[^a-z]/g, ''); 
+                if (tLower === 'blankaudio' || tLower === 'silence' || tLower === 'music' || tLower === 'subsby' || tLower.includes('subtitlesby')) {
+                    continue; 
                 }
 
-                if (!text.startsWith('[') && !text.startsWith('(')) {
-                    process.stdout.write(`\rTranscribed: ${text.padEnd(50)}\n`);
-                    broadcastText(text);
+                // 3. Skip if the remaining string is empty or just purely punctuation/symbols (e.g., "...", ".", "??")
+                if (!text || text.match(/^[^a-zA-Z0-9]+$/) || text.length <= 1) {
+                    continue; 
                 }
+
+                process.stdout.write(`\rTranscribed: ${text.padEnd(50)}\n`);
+                broadcastText(text);
             } else if (!line.startsWith('[') && !line.startsWith('whisper_') && !line.startsWith('main:')) {
                  if (line.length > 1) {
                      broadcastText(line);
