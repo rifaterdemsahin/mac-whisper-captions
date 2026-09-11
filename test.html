@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Mac Whisper Captions</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #222; color: #fff; }
+        .nav { background: #333; padding: 15px 20px; display: flex; gap: 20px; }
+        .nav a { color: #fff; text-decoration: none; font-weight: bold; }
+        .nav a:hover { color: #4CAF50; }
+        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        #status { padding: 10px; margin-bottom: 20px; border-radius: 5px; font-weight: bold; display: inline-block;}
+        .connected { background: #2ecc71; color: #000; }
+        .disconnected { background: #e74c3c; color: #fff; }
+        #subtitles { 
+            background: rgba(0, 0, 0, 0.8); 
+            padding: 20px; 
+            border-radius: 10px; 
+            min-height: 150px; 
+            font-size: 28px; 
+            text-align: center; 
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .subtitle-line { margin: 5px 0; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #log { background: #111; padding: 15px; border-radius: 5px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 14px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">Home</a>
+        <a href="test.html">Test Stream</a>
+    </div>
+
+    <div class="container">
+        <h1>Caption Stream Tester</h1>
+        <div id="status" class="disconnected">Disconnected</div>
+        
+        <h2>Live Subtitles</h2>
+        <div id="subtitles"></div>
+
+        <h2>Raw Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const subtitlesEl = document.getElementById('subtitles');
+        const logEl = document.getElementById('log');
+        const MAX_LINES = 3;
+        let ws;
+
+        function connect() {
+            statusEl.textContent = 'Connecting...';
+            ws = new WebSocket('ws://localhost:3000');
+
+            ws.onopen = () => {
+                statusEl.textContent = 'Connected to ws://localhost:3000';
+                statusEl.className = 'connected';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // Add to subtitles UI
+                const line = document.createElement('div');
+                line.className = 'subtitle-line';
+                line.textContent = data.text;
+                subtitlesEl.appendChild(line);
+                while (subtitlesEl.children.length > MAX_LINES) {
+                    subtitlesEl.removeChild(subtitlesEl.firstChild);
+                }
+
+                // Add to raw log
+                const logLine = document.createElement('div');
+                logLine.textContent = `[${new Date().toLocaleTimeString()}] ${data.text}`;
+                logEl.appendChild(logLine);
+                logEl.scrollTop = logEl.scrollHeight;
+            };
+
+            ws.onclose = () => {
+                statusEl.textContent = 'Disconnected (Retrying...)';
+                statusEl.className = 'disconnected';
+                setTimeout(connect, 2000);
+            };
+            
+            ws.onerror = () => ws.close();
+        }
+
+        connect();
+    </script>
+</body>
+</html>
