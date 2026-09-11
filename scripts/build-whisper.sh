@@ -20,8 +20,8 @@ cd "$WHISPER_DIR"
 echo "Downloading ggml-base.en.bin model..."
 bash ./models/download-ggml-model.sh base.en
 
-echo "Building whisper.cpp with Metal support..."
-make clean
-WHISPER_METAL=1 make stream
+echo "Building whisper.cpp with Metal and SDL2 support using CMake..."
+cmake -B build -DGGML_METAL=ON -DWHISPER_SDL2=ON
+cmake --build build --config Release -j 4
 
-echo "Build complete! The 'stream' binary is ready at whisper.cpp/stream"
+echo "Build complete! The 'stream' binary is ready at whisper.cpp/build/bin/whisper-stream"

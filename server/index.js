@@ -31,7 +31,7 @@ function broadcast(message) {
 let whisperProcess = null;
 
 function startWhisper() {
-    const streamPath = path.join(__dirname, '..', 'whisper.cpp', 'stream');
+    const streamPath = path.join(__dirname, '..', 'whisper.cpp', 'build', 'bin', 'whisper-stream');
     const modelPath = path.join(__dirname, '..', 'whisper.cpp', 'models', 'ggml-base.en.bin');
 
     if (!fs.existsSync(streamPath) || !fs.existsSync(modelPath)) {
