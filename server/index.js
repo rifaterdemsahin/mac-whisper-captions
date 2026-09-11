@@ -104,46 +104,48 @@ function startWhisper() {
             line = line.trim();
             if (!line) continue;
             line = line.replace(/\x1B\[[0-9;]*[mK]/g, '');
+            // Centralized cleaning and filtering logic
+            let textToProcess = '';
             const match = line.match(/\](.*)/);
-            if (match && match[1]) {
-                let text = match[1].trim();
-                
+            if (match) {
+                textToProcess = match[1].trim();
+            } else if (!line.startsWith('[') && !line.startsWith('whisper_') && !line.startsWith('main:')) {
+                textToProcess = line.trim();
+            }
+
+            if (textToProcess) {
                 // 1. Aggressively strip environmental noise tags
-                text = text.replace(/\[.*?\]|\(.*?\)|\*.*?\*/g, '').trim();
+                textToProcess = textToProcess.replace(/\[.*?\]|\(.*?\)|\*.*?\*/g, '').trim();
 
                 // 2. Filter out known Whisper hallucinations
-                const tLower = text.toLowerCase().replace(/[^a-z]/g, ''); 
+                const tLower = textToProcess.toLowerCase().replace(/[^a-z]/g, ''); 
                 if (tLower === 'blankaudio' || tLower === 'silence' || tLower === 'music' || tLower === 'subsby' || tLower.includes('subtitlesby')) {
                     continue; 
                 }
 
                 // 3. Skip if the remaining string is empty or just purely punctuation/symbols
-                if (!text || text.match(/^[^a-zA-Z0-9]+$/) || text.length <= 1) {
+                if (!textToProcess || textToProcess.match(/^[^a-zA-Z0-9]+$/) || textToProcess.length <= 1) {
                     continue; 
                 }
                 
                 // 4. Custom User Blocks filtering
                 const containsBlock = customBlocks.some(block => {
                     const blockRegex = new RegExp(`\\b${block.toLowerCase()}\\b`, 'i');
-                    return blockRegex.test(text.toLowerCase());
+                    return blockRegex.test(textToProcess.toLowerCase());
                 });
                 
                 if (containsBlock) {
                     continue;
                 }
 
-                // 5. Deduplication (Prevent flickering of the exact same output sequentially)
-                if (text === lastBroadcastedText) {
-                    continue; // Skip exact duplicates
+                // 5. Deduplication
+                if (textToProcess === lastBroadcastedText) {
+                    continue;
                 }
-                lastBroadcastedText = text;
+                lastBroadcastedText = textToProcess;
 
-                process.stdout.write(`\rTranscribed: ${text.padEnd(50)}\n`);
-                broadcastText(text);
-            } else if (!line.startsWith('[') && !line.startsWith('whisper_') && !line.startsWith('main:')) {
-                 if (line.length > 1) {
-                     broadcastText(line);
-                 }
+                process.stdout.write(`\rTranscribed: ${textToProcess.padEnd(50)}\n`);
+                broadcastText(textToProcess);
             }
         }
     });
