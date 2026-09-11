@@ -16,7 +16,7 @@ function connect() {
         try {
             const data = JSON.parse(event.data);
             if (data.text) {
-                addCaption(data.text);
+                addCaption(data.text, data.id);
             }
         } catch (err) {
             console.error('Error parsing message:', err);
@@ -35,16 +35,42 @@ function connect() {
     };
 }
 
-function addCaption(text) {
-    const line = document.createElement('div');
-    line.className = 'caption-line';
-    line.textContent = text;
-    
-    captionsContainer.appendChild(line);
+function addCaption(text, id) {
+    if (!id) id = Date.now().toString();
 
-    // Keep only the last MAX_LINES
-    while (captionsContainer.children.length > MAX_LINES) {
-        captionsContainer.removeChild(captionsContainer.firstChild);
+    let shouldAppend = true;
+    
+    // First try to find by exact Segment ID
+    let line = document.getElementById(`caption-${id}`);
+    
+    if (line) {
+        line.textContent = text;
+        shouldAppend = false;
+    } else if (captionsContainer.children.length > 0) {
+        // Fallback string-matching continuation check for older/id-less streams
+        const lastLine = captionsContainer.lastChild;
+        const lastText = lastLine.textContent;
+        const minLen = Math.min(text.length, lastText.length);
+        
+        if (minLen > 3 && (text.startsWith(lastText.substring(0, minLen - 2)) || lastText.startsWith(text.substring(0, minLen - 2)))) {
+            lastLine.textContent = text;
+            shouldAppend = false;
+        } else if (text.includes(lastText) || lastText.includes(text)) {
+            lastLine.textContent = text;
+            shouldAppend = false;
+        }
+    }
+
+    if (shouldAppend) {
+        const newLine = document.createElement('div');
+        newLine.className = 'caption-line';
+        newLine.id = `caption-${id}`;
+        newLine.textContent = text;
+        captionsContainer.appendChild(newLine);
+
+        while (captionsContainer.children.length > MAX_LINES) {
+            captionsContainer.removeChild(captionsContainer.firstChild);
+        }
     }
 }
 

@@ -292,12 +292,35 @@
                     // Add to full log for downloading
                     fullTranscriptionLog.push(logEntry);
                     
-                    // Add to subtitles UI
-                    const line = document.createElement('div');
-                    line.className = 'subtitle-line';
-                    line.textContent = data.text;
-                    subtitlesEl.appendChild(line);
-                    while (subtitlesEl.children.length > MAX_LINES) subtitlesEl.removeChild(subtitlesEl.firstChild);
+                    // Add to subtitles UI preview
+                    let shouldAppendPreview = true;
+                    let existingLine = document.getElementById(`preview-${data.id}`);
+                    
+                    if (existingLine) {
+                        existingLine.textContent = data.text;
+                        shouldAppendPreview = false;
+                    } else if (subtitlesEl.children.length > 0) {
+                        const lastLine = subtitlesEl.lastChild;
+                        const lastText = lastLine.textContent;
+                        const minLen = Math.min(data.text.length, lastText.length);
+                        
+                        if (minLen > 3 && (data.text.startsWith(lastText.substring(0, minLen - 2)) || lastText.startsWith(data.text.substring(0, minLen - 2)))) {
+                            lastLine.textContent = data.text;
+                            shouldAppendPreview = false;
+                        } else if (data.text.includes(lastText) || lastText.includes(data.text)) {
+                            lastLine.textContent = data.text;
+                            shouldAppendPreview = false;
+                        }
+                    }
+
+                    if (shouldAppendPreview) {
+                        const line = document.createElement('div');
+                        line.className = 'subtitle-line';
+                        line.id = `preview-${data.id || Date.now()}`;
+                        line.textContent = data.text;
+                        subtitlesEl.appendChild(line);
+                        while (subtitlesEl.children.length > MAX_LINES) subtitlesEl.removeChild(subtitlesEl.firstChild);
+                    }
 
                     // Add to raw log
                     const logLine = document.createElement('div');

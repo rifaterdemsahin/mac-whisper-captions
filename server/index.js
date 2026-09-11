@@ -52,12 +52,14 @@ wss.on('connection', (ws) => {
     });
 });
 
-function broadcastText(text) {
+let currentSegmentId = 'unknown';
+
+function broadcastText(text, id = 'unknown') {
     if (isPaused) return; 
     
     for (const client of clients) {
         if (client.readyState === 1) { 
-            client.send(JSON.stringify({ type: 'text', text: text }));
+            client.send(JSON.stringify({ type: 'text', text: text, id: id }));
         }
     }
 }
@@ -104,11 +106,18 @@ function startWhisper() {
             line = line.trim();
             if (!line) continue;
             line = line.replace(/\x1B\[[0-9;]*[mK]/g, '');
-            // Centralized cleaning and filtering logic
+            
             let textToProcess = '';
-            const match = line.match(/\](.*)/);
-            if (match) {
-                textToProcess = match[1].trim();
+            
+            // Try to extract timestamp to use as a unique ID for the current spoken segment
+            // Format usually looks like: [00:00:00.000 --> 00:00:02.000]   Hello
+            const tsMatch = line.match(/^\[([\d:.\s\->]+)\](.*)/);
+            if (tsMatch) {
+                const tsRaw = tsMatch[1];
+                currentSegmentId = tsRaw.split('-->')[0].trim(); // Use the start time as the ID
+                textToProcess = tsMatch[2].trim();
+            } else if (line.match(/\](.*)/)) {
+                textToProcess = line.match(/\](.*)/)[1].trim();
             } else if (!line.startsWith('[') && !line.startsWith('whisper_') && !line.startsWith('main:')) {
                 textToProcess = line.trim();
             }
@@ -144,8 +153,8 @@ function startWhisper() {
                 }
                 lastBroadcastedText = textToProcess;
 
-                process.stdout.write(`\rTranscribed: ${textToProcess.padEnd(50)}\n`);
-                broadcastText(textToProcess);
+                process.stdout.write(`\rTranscribed [${currentSegmentId}]: ${textToProcess.padEnd(50)}\n`);
+                broadcastText(textToProcess, currentSegmentId);
             }
         }
     });
