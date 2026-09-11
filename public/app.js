@@ -35,8 +35,18 @@ function connect() {
     };
 }
 
+let fadeTimeout = null;
+const FADE_DELAY_MS = 5000;
+
 function addCaption(text, id) {
     if (!id) id = Date.now().toString();
+
+    // Reset container visibility immediately upon new text
+    captionsContainer.style.opacity = '1';
+    captionsContainer.style.transition = 'opacity 0.2s';
+    
+    // Clear existing fade timeout
+    if (fadeTimeout) clearTimeout(fadeTimeout);
 
     let shouldAppend = true;
     
@@ -72,6 +82,12 @@ function addCaption(text, id) {
             captionsContainer.removeChild(captionsContainer.firstChild);
         }
     }
+
+    // Set timeout to fade out subtitles after silence
+    fadeTimeout = setTimeout(() => {
+        captionsContainer.style.opacity = '0';
+        captionsContainer.style.transition = 'opacity 1s';
+    }, FADE_DELAY_MS);
 }
 
 // Start connection

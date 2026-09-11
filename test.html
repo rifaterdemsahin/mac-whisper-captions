@@ -179,25 +179,47 @@
         let isPaused = false;
         let fullTranscriptionLog = [];
 
-        function updateBlockedWords() {
-            if (ws && ws.readyState === 1) {
-                const words = blockedWordsInput.value.split(',').map(w => w.trim()).filter(w => w.length > 0);
-                ws.send(JSON.stringify({ type: 'update_blocks', blocks: words }));
-            }
+        const FADE_DELAY_MS = 5000;
+        let fadeTimeout = null;
+
+        // --- Settings Persistence ---
+        function saveSettings() {
+            const settings = {
+                theme: document.getElementById('obs-theme').value,
+                fontSize: document.getElementById('fs-input').value,
+                textColor: document.getElementById('tc-input').value,
+                bgOpacity: document.getElementById('bg-input').value,
+                blockedWords: document.getElementById('blocked-words').value
+            };
+            localStorage.setItem('macWhisperSettings', JSON.stringify(settings));
         }
 
-        function changeMic(id) {
-            if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'change_device', id: id }));
-        }
-
-        function togglePause() {
-            if (ws && ws.readyState === 1) {
-                isPaused = !isPaused;
-                ws.send(JSON.stringify({ type: 'pause', paused: isPaused }));
+        function loadSettings() {
+            const saved = localStorage.getItem('macWhisperSettings');
+            if (saved) {
+                const s = JSON.parse(saved);
+                if(s.theme) document.getElementById('obs-theme').value = s.theme;
+                if(s.fontSize) {
+                    document.getElementById('fs-input').value = s.fontSize;
+                    document.getElementById('fs-val').textContent = s.fontSize + 'px';
+                    subtitlesEl.style.fontSize = s.fontSize + 'px';
+                }
+                if(s.textColor) {
+                    document.getElementById('tc-input').value = s.textColor;
+                    subtitlesEl.style.color = s.textColor;
+                }
+                if(s.bgOpacity) {
+                    document.getElementById('bg-input').value = s.bgOpacity;
+                    subtitlesEl.style.backgroundColor = `rgba(0, 0, 0, ${s.bgOpacity})`;
+                }
+                if(s.blockedWords) {
+                    document.getElementById('blocked-words').value = s.blockedWords;
+                }
             }
         }
 
         function updateObsLinkAndCss() {
+            saveSettings(); // Save whenever customized
             // Update URL
             const theme = document.getElementById('obs-theme').value;
             const linkInput = document.getElementById('obs-link');
@@ -217,6 +239,25 @@
     background-color: rgba(0, 0, 0, ${bgOpacity}) !important;
     text-shadow: none !important;
 }`;
+        }
+
+        function changeMic(id) {
+            if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'change_device', id: id }));
+        }
+
+        function togglePause() {
+            if (ws && ws.readyState === 1) {
+                isPaused = !isPaused;
+                ws.send(JSON.stringify({ type: 'pause', paused: isPaused }));
+            }
+        }
+
+        function updateBlockedWords() {
+            saveSettings();
+            if (ws && ws.readyState === 1) {
+                const words = blockedWordsInput.value.split(',').map(w => w.trim()).filter(w => w.length > 0);
+                ws.send(JSON.stringify({ type: 'update_blocks', blocks: words }));
+            }
         }
 
         function copyElement(elementId) {
@@ -249,6 +290,8 @@
             ws.onopen = () => {
                 statusEl.textContent = '🟢 Connected to Engine';
                 statusEl.className = 'connected';
+                // Send loaded blocked words immediately
+                updateBlockedWords();
             };
 
             ws.onmessage = (event) => {
@@ -266,9 +309,10 @@
                     });
                     if (data.devices.length === 0) micSelect.innerHTML = '<option value="">No devices found</option>';
                     
-                    // Update Blocked Words
-                    if (document.activeElement !== blockedWordsInput) {
-                        blockedWordsInput.value = data.blocks ? data.blocks.join(', ') : '';
+                    // Update Blocked Words (only if empty to not overwrite local)
+                    if (!blockedWordsInput.value && data.blocks && data.blocks.length > 0) {
+                        blockedWordsInput.value = data.blocks.join(', ');
+                        saveSettings();
                     }
                     
                     // Update Pause state
@@ -291,6 +335,11 @@
                     
                     // Add to full log for downloading
                     fullTranscriptionLog.push(logEntry);
+                    
+                    // Reset fade timer
+                    subtitlesEl.style.opacity = '1';
+                    subtitlesEl.style.transition = 'opacity 0.2s';
+                    if (fadeTimeout) clearTimeout(fadeTimeout);
                     
                     // Add to subtitles UI preview
                     let shouldAppendPreview = true;
@@ -321,6 +370,11 @@
                         subtitlesEl.appendChild(line);
                         while (subtitlesEl.children.length > MAX_LINES) subtitlesEl.removeChild(subtitlesEl.firstChild);
                     }
+                    
+                    fadeTimeout = setTimeout(() => {
+                        subtitlesEl.style.opacity = '0';
+                        subtitlesEl.style.transition = 'opacity 1s';
+                    }, FADE_DELAY_MS);
 
                     // Add to raw log
                     const logLine = document.createElement('div');
@@ -340,6 +394,7 @@
             ws.onerror = () => ws.close();
         }
 
+        loadSettings();
         updateObsLinkAndCss();
         connect();
     </script>
