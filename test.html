@@ -3,110 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test - Mac Whisper Captions</title>
+    <title>Control Panel - Mac Whisper Captions</title>
     <style>
-        body { font-family: sans-serif; margin: 0; padding: 0; background: #222; color: #fff; }
-        .nav { background: #333; padding: 15px 20px; display: flex; gap: 20px; }
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #1a1a24; color: #fff; }
+        .nav { background: #111; padding: 15px 20px; display: flex; gap: 20px; border-bottom: 2px solid #333; }
         .nav a { color: #fff; text-decoration: none; font-weight: bold; }
         .nav a:hover { color: #4CAF50; }
-        .container { padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { padding: 20px; max-width: 900px; margin: 0 auto; }
+        
+        .panel { background: #2a2a35; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #3d3d4e; }
+        .panel h3 { margin-top: 0; color: #4CAF50; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #3d3d4e; padding-bottom: 10px; }
+        
         .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        #status { padding: 10px; border-radius: 5px; font-weight: bold; }
+        #status { padding: 10px 15px; border-radius: 5px; font-weight: bold; }
         .connected { background: #2ecc71; color: #000; }
         .disconnected { background: #e74c3c; color: #fff; }
-        .controls { background: #333; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center;}
-        .controls label { display: flex; flex-direction: column; font-size: 14px; gap: 5px;}
-        select, input[type="color"], input[type="range"] { cursor: pointer; }
         
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .control-group { display: flex; flex-direction: column; gap: 5px; font-size: 14px; }
+        select, input[type="color"], input[type="range"], input[type="text"] { 
+            background: #111; color: #fff; border: 1px solid #444; padding: 8px; border-radius: 5px; cursor: pointer; font-family: inherit;
+        }
+        
+        button { 
+            background: #4CAF50; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        button:hover { background: #45a049; }
+        button.btn-danger { background: #e74c3c; color: white; }
+        button.btn-danger:hover { background: #c0392b; }
+        
+        .overlay-link-box { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+        .overlay-link-box input { flex-grow: 1; font-family: monospace; color: #4CAF50; font-size: 14px; }
+
         #subtitles-container {
             background-image: linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%);
             background-size: 20px 20px;
             background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 20px; border-radius: 10px; margin-bottom: 20px;
         }
 
         #subtitles { 
-            background: rgba(0, 0, 0, 0.8); 
-            padding: 20px; 
-            border-radius: 10px; 
-            min-height: 150px; 
-            font-size: 32px;
-            color: #ffffff;
-            text-align: center; 
-            line-height: 1.5;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8); padding: 20px; border-radius: 10px; min-height: 150px; 
+            font-size: 32px; color: #ffffff; text-align: center; line-height: 1.5;
+            display: flex; flex-direction: column; justify-content: flex-end; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
         .subtitle-line { margin: 5px 0; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #log { background: #111; padding: 15px; border-radius: 5px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 14px; color: #aaa; }
+        
+        #log { background: #111; padding: 15px; border-radius: 5px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 14px; color: #aaa; border: 1px solid #333; }
+        
+        .header-actions { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html">Home</a>
-        <a href="test.html">Test Stream</a>
+        <a href="index.html">🏠 Home</a>
+        <a href="test.html">🎛️ Control Panel</a>
     </div>
 
     <div class="container">
-        <h1>Caption Stream Tester</h1>
-        
         <div class="status-bar">
+            <h1>Transcription Control Panel</h1>
             <div id="status" class="disconnected">Disconnected</div>
-            <p style="color: #aaa; font-size: 14px;">Make sure your terminal has Microphone permissions!</p>
         </div>
         
-        <div class="controls">
-            <label>Microphone
-                <select id="mic-select" onchange="changeMic(this.value)">
-                    <option value="">Waiting for server...</option>
-                </select>
-            </label>
-            <label>Font Size
-                <input type="range" min="16" max="72" value="32" oninput="document.getElementById('subtitles').style.fontSize = this.value + 'px'">
-            </label>
-            <label>Text Color
-                <input type="color" value="#ffffff" oninput="document.getElementById('subtitles').style.color = this.value">
-            </label>
-            <label>Background Opacity
-                <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="updateBgAlpha(this.value)">
-            </label>
+        <!-- MICROPHONE & PAUSE -->
+        <div class="panel">
+            <h3>🎤 Engine Controls</h3>
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <div class="control-group" style="flex-grow: 1;">
+                    <label>Select Microphone Hardware</label>
+                    <select id="mic-select" onchange="changeMic(this.value)">
+                        <option value="">Waiting for server...</option>
+                    </select>
+                </div>
+                <button id="pause-btn" onclick="togglePause()" class="btn-danger" style="padding: 15px 30px; font-size: 16px;">
+                    ⏸️ Pause Transcription
+                </button>
+            </div>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #aaa;">Make sure your terminal has Microphone permissions! Changing mics restarts the engine automatically.</p>
         </div>
 
-        <div class="controls" style="background: #2a2a35; border: 1px solid #4CAF50;">
-            <div style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <h3 style="margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-                        OBS Browser Source URL
-                    </h3>
-                    <p style="margin: 0; font-size: 14px; color: #aaa;">In OBS, add a Browser Source. <b style="color: #ff9800;">Uncheck "Local File"</b>, and paste this into the <b>URL</b> box:</p>
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select id="obs-theme" onchange="updateObsLink()" style="background: #111; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 5px;">
+        <!-- CUSTOMIZE OVERLAY & LINK -->
+        <div class="panel">
+            <h3>🎨 Customize Overlay</h3>
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label>Theme Preset</label>
+                    <select id="obs-theme" onchange="updateObsLink()">
                         <option value="default">Default Theme</option>
                         <option value="neon">Neon Theme</option>
                         <option value="retro">Retro Theme</option>
                         <option value="minimal">Minimal Theme</option>
                         <option value="custom">Custom CSS Theme</option>
                     </select>
-                    <input type="text" id="obs-link" readonly value="http://localhost:8000/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 350px; font-family: monospace;">
-                    <button onclick="copyObsLink()" style="background: #4CAF50; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Copy</button>
                 </div>
+                <div class="control-group">
+                    <label>Font Size (<span id="fs-val">32px</span>)</label>
+                    <input type="range" min="16" max="72" value="32" oninput="document.getElementById('subtitles').style.fontSize = this.value + 'px'; document.getElementById('fs-val').textContent = this.value + 'px';">
+                </div>
+                <div class="control-group">
+                    <label>Text Color</label>
+                    <input type="color" value="#ffffff" oninput="document.getElementById('subtitles').style.color = this.value; document.getElementById('subtitles').style.textShadow = 'none';">
+                </div>
+                <div class="control-group">
+                    <label>Background Opacity</label>
+                    <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="document.getElementById('subtitles').style.backgroundColor = `rgba(0, 0, 0, ${this.value})`">
+                </div>
+            </div>
+
+            <h4 style="margin: 20px 0 10px 0; color: #ccc;">🔗 Copy Overlay Link (For OBS)</h4>
+            <p style="margin: 0 0 10px 0; font-size: 13px; color: #aaa;">In OBS Studio, add a Browser Source, <b style="color: #ff9800;">uncheck "Local File"</b>, and paste this URL:</p>
+            <div class="overlay-link-box">
+                <input type="text" id="obs-link" readonly value="http://localhost:8000/public/index.html">
+                <button onclick="copyObsLink()">📋 Copy Link</button>
             </div>
         </div>
 
-        <h2>Live Subtitles Preview</h2>
-        <div id="subtitles-container">
-            <div id="subtitles"></div>
-        </div>
+        <!-- LIVE PREVIEW -->
+        <div class="panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="border: none; padding: 0; margin: 0;">📺 Live Preview</h3>
+                <button onclick="downloadTranscription()">💾 Download Transcription Log</button>
+            </div>
+            
+            <div id="subtitles-container">
+                <div id="subtitles"></div>
+            </div>
 
-        <h2>Raw Log</h2>
-        <div id="log"></div>
+            <h4 style="margin: 0 0 10px 0; color: #ccc;">Raw Log</h4>
+            <div id="log"></div>
+        </div>
     </div>
 
     <script>
@@ -114,29 +141,52 @@
         const subtitlesEl = document.getElementById('subtitles');
         const logEl = document.getElementById('log');
         const micSelect = document.getElementById('mic-select');
+        const pauseBtn = document.getElementById('pause-btn');
         const MAX_LINES = 3;
+        
         let ws;
-
-        function updateBgAlpha(alpha) {
-            subtitlesEl.style.backgroundColor = `rgba(0, 0, 0, ${alpha})`;
-        }
+        let isPaused = false;
+        let fullTranscriptionLog = [];
 
         function changeMic(id) {
+            if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'change_device', id: id }));
+        }
+
+        function togglePause() {
             if (ws && ws.readyState === 1) {
-                ws.send(JSON.stringify({ type: 'change_device', id: id }));
+                isPaused = !isPaused;
+                ws.send(JSON.stringify({ type: 'pause', paused: isPaused }));
             }
         }
 
         function updateObsLink() {
             const theme = document.getElementById('obs-theme').value;
             const input = document.getElementById('obs-link');
-            // Using the Python local HTTP server to avoid OBS parameter dropping issues with file:/// URIs
             const basePath = 'http://localhost:8000/public/index.html';
-            if (theme === 'default') {
-                input.value = basePath;
-            } else {
-                input.value = `${basePath}?theme=${theme}`;
-            }
+            input.value = theme === 'default' ? basePath : `${basePath}?theme=${theme}`;
+        }
+
+        function copyObsLink() {
+            const input = document.getElementById('obs-link');
+            input.select();
+            document.execCommand('copy');
+            const btn = input.nextElementSibling;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            setTimeout(() => btn.innerHTML = originalText, 2000);
+        }
+        
+        function downloadTranscription() {
+            if (fullTranscriptionLog.length === 0) return alert("No transcription to download yet!");
+            const blob = new Blob([fullTranscriptionLog.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transcription_${new Date().getTime()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         function connect() {
@@ -144,48 +194,63 @@
             ws = new WebSocket('ws://localhost:3000');
 
             ws.onopen = () => {
-                statusEl.textContent = 'Connected';
+                statusEl.textContent = '🟢 Connected to Engine';
                 statusEl.className = 'connected';
             };
 
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 
-                if (data.type === 'devices') {
+                if (data.type === 'state') {
                     // Update microphone dropdown
                     micSelect.innerHTML = '';
                     data.devices.forEach(dev => {
                         const opt = document.createElement('option');
                         opt.value = dev.id;
                         opt.textContent = `[${dev.id}] ${dev.name}`;
-                        if (dev.id === data.current) {
-                            opt.selected = true;
-                        }
+                        if (dev.id === data.current) opt.selected = true;
                         micSelect.appendChild(opt);
                     });
-                    if (data.devices.length === 0) {
-                        micSelect.innerHTML = '<option value="">No devices found</option>';
+                    if (data.devices.length === 0) micSelect.innerHTML = '<option value="">No devices found</option>';
+                    
+                    // Update Pause state
+                    isPaused = data.paused;
+                    if (isPaused) {
+                        pauseBtn.innerHTML = '▶️ Resume Transcription';
+                        pauseBtn.style.background = '#f39c12';
+                        statusEl.textContent = '⏸️ Engine Paused';
+                        statusEl.style.background = '#f39c12';
+                    } else {
+                        pauseBtn.innerHTML = '⏸️ Pause Transcription';
+                        pauseBtn.style.background = '#e74c3c';
+                        statusEl.textContent = '🟢 Connected to Engine';
+                        statusEl.style.background = '#2ecc71';
                     }
+
                 } else if (data.type === 'text') {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const logEntry = `[${timestamp}] ${data.text}`;
+                    
+                    // Add to full log for downloading
+                    fullTranscriptionLog.push(logEntry);
+                    
                     // Add to subtitles UI
                     const line = document.createElement('div');
                     line.className = 'subtitle-line';
                     line.textContent = data.text;
                     subtitlesEl.appendChild(line);
-                    while (subtitlesEl.children.length > MAX_LINES) {
-                        subtitlesEl.removeChild(subtitlesEl.firstChild);
-                    }
+                    while (subtitlesEl.children.length > MAX_LINES) subtitlesEl.removeChild(subtitlesEl.firstChild);
 
                     // Add to raw log
                     const logLine = document.createElement('div');
-                    logLine.textContent = `[${new Date().toLocaleTimeString()}] ${data.text}`;
+                    logLine.textContent = logEntry;
                     logEl.appendChild(logLine);
                     logEl.scrollTop = logEl.scrollHeight;
                 }
             };
 
             ws.onclose = () => {
-                statusEl.textContent = 'Disconnected (Retrying...)';
+                statusEl.textContent = '🔴 Disconnected (Retrying...)';
                 statusEl.className = 'disconnected';
                 micSelect.innerHTML = '<option value="">Waiting for server...</option>';
                 setTimeout(connect, 2000);
@@ -194,24 +259,6 @@
             ws.onerror = () => ws.close();
         }
 
-
-        function copyObsLink() {
-            const input = document.getElementById('obs-link');
-            
-            // Because OBS on Mac can sometimes be finicky with absolute paths vs file URIs in Local File mode,
-            // we will provide the clean file:/// URI. Wait, actually OBS Local File expects a raw path.
-            // But with URL parameters (like ?theme=neon), OBS "Local File" checkbox strips them on some versions!
-            // The safest way is to uncheck "Local File" in OBS and put the file:/// URI in the "URL" box.
-            
-            input.select();
-            document.execCommand('copy');
-            const btn = input.nextElementSibling;
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => btn.textContent = originalText, 2000);
-        }
-
-        // Initialize link correctly
         updateObsLink();
         connect();
     </script>

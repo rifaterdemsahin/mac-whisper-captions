@@ -12,12 +12,14 @@ const clients = new Set();
 let currentDeviceId = '0';
 let availableDevices = [];
 
+let isPaused = false;
+
 wss.on('connection', (ws) => {
     console.log('New WebSocket client connected');
     clients.add(ws);
     
-    // Send current devices to the new client
-    ws.send(JSON.stringify({ type: 'devices', devices: availableDevices, current: currentDeviceId }));
+    // Send current devices and pause state to the new client
+    ws.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
 
     ws.on('message', (message) => {
         try {
@@ -26,6 +28,15 @@ wss.on('connection', (ws) => {
                 console.log(`Changing microphone to device ID: ${data.id}`);
                 currentDeviceId = data.id.toString();
                 restartWhisper();
+            } else if (data.type === 'pause') {
+                isPaused = data.paused;
+                console.log(`Transcription paused state: ${isPaused}`);
+                // Broadcast pause state to all clients
+                for (const client of clients) {
+                    if (client.readyState === 1) {
+                        client.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
+                    }
+                }
             }
         } catch (e) {
             console.error('Error parsing message', e);
@@ -39,6 +50,8 @@ wss.on('connection', (ws) => {
 });
 
 function broadcastText(text) {
+    if (isPaused) return; // Do not broadcast if paused
+    
     for (const client of clients) {
         if (client.readyState === 1) { // OPEN
             client.send(JSON.stringify({ type: 'text', text: text }));
@@ -49,7 +62,7 @@ function broadcastText(text) {
 function broadcastDevices() {
     for (const client of clients) {
         if (client.readyState === 1) { // OPEN
-            client.send(JSON.stringify({ type: 'devices', devices: availableDevices, current: currentDeviceId }));
+            client.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
         }
     }
 }
