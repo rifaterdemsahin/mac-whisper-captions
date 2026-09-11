@@ -14,13 +14,15 @@ let availableDevices = [];
 
 let isPaused = false;
 let hasAutoSwitched = false;
+let customBlocks = [];
+let lastBroadcastedText = '';
 
 wss.on('connection', (ws) => {
     console.log('New WebSocket client connected');
     clients.add(ws);
     
-    // Send current devices and pause state to the new client
-    ws.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
+    // Send current state to the new client
+    ws.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused, blocks: customBlocks }));
 
     ws.on('message', (message) => {
         try {
@@ -28,17 +30,16 @@ wss.on('connection', (ws) => {
             if (data.type === 'change_device') {
                 console.log(`Changing microphone to device ID: ${data.id}`);
                 currentDeviceId = data.id.toString();
-                hasAutoSwitched = true; // Prevents auto-switching if user manually overrides
+                hasAutoSwitched = true;
                 restartWhisper();
             } else if (data.type === 'pause') {
                 isPaused = data.paused;
                 console.log(`Transcription paused state: ${isPaused}`);
-                // Broadcast pause state to all clients
-                for (const client of clients) {
-                    if (client.readyState === 1) {
-                        client.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
-                    }
-                }
+                broadcastState();
+            } else if (data.type === 'update_blocks') {
+                customBlocks = data.blocks;
+                console.log(`Updated custom blocks: ${customBlocks.join(', ')}`);
+                broadcastState();
             }
         } catch (e) {
             console.error('Error parsing message', e);
@@ -52,19 +53,19 @@ wss.on('connection', (ws) => {
 });
 
 function broadcastText(text) {
-    if (isPaused) return; // Do not broadcast if paused
+    if (isPaused) return; 
     
     for (const client of clients) {
-        if (client.readyState === 1) { // OPEN
+        if (client.readyState === 1) { 
             client.send(JSON.stringify({ type: 'text', text: text }));
         }
     }
 }
 
-function broadcastDevices() {
+function broadcastState() {
     for (const client of clients) {
-        if (client.readyState === 1) { // OPEN
-            client.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused }));
+        if (client.readyState === 1) { 
+            client.send(JSON.stringify({ type: 'state', devices: availableDevices, current: currentDeviceId, paused: isPaused, blocks: customBlocks }));
         }
     }
 }
@@ -74,6 +75,7 @@ let isRestarting = false;
 
 function startWhisper() {
     isRestarting = false;
+    lastBroadcastedText = ''; // Reset deduplication buffer
     const streamPath = path.join(__dirname, '..', 'whisper.cpp', 'build', 'bin', 'whisper-stream');
     const modelPath = path.join(__dirname, '..', 'whisper.cpp', 'models', 'ggml-base.en.bin');
 
@@ -93,8 +95,6 @@ function startWhisper() {
     ];
 
     whisperProcess = spawn(streamPath, args);
-
-    // Reset devices list when starting to repopulate
     availableDevices = [];
 
     whisperProcess.stdout.on('data', (data) => {
@@ -104,24 +104,39 @@ function startWhisper() {
             line = line.trim();
             if (!line) continue;
             line = line.replace(/\x1B\[[0-9;]*[mK]/g, '');
-            // Extract text after the timestamp if present
             const match = line.match(/\](.*)/);
             if (match && match[1]) {
                 let text = match[1].trim();
                 
-                // 1. Aggressively strip environmental noise tags like [Keyboard typing], (coughs), *wind*
+                // 1. Aggressively strip environmental noise tags
                 text = text.replace(/\[.*?\]|\(.*?\)|\*.*?\*/g, '').trim();
 
-                // 2. Filter out known Whisper hallucinations on silence (YouTube dataset artifacts)
+                // 2. Filter out known Whisper hallucinations
                 const tLower = text.toLowerCase().replace(/[^a-z]/g, ''); 
                 if (tLower === 'blankaudio' || tLower === 'silence' || tLower === 'music' || tLower === 'subsby' || tLower.includes('subtitlesby')) {
                     continue; 
                 }
 
-                // 3. Skip if the remaining string is empty or just purely punctuation/symbols (e.g., "...", ".", "??")
+                // 3. Skip if the remaining string is empty or just purely punctuation/symbols
                 if (!text || text.match(/^[^a-zA-Z0-9]+$/) || text.length <= 1) {
                     continue; 
                 }
+                
+                // 4. Custom User Blocks filtering
+                const containsBlock = customBlocks.some(block => {
+                    const blockRegex = new RegExp(`\\b${block.toLowerCase()}\\b`, 'i');
+                    return blockRegex.test(text.toLowerCase());
+                });
+                
+                if (containsBlock) {
+                    continue;
+                }
+
+                // 5. Deduplication (Prevent flickering of the exact same output sequentially)
+                if (text === lastBroadcastedText) {
+                    continue; // Skip exact duplicates
+                }
+                lastBroadcastedText = text;
 
                 process.stdout.write(`\rTranscribed: ${text.padEnd(50)}\n`);
                 broadcastText(text);
@@ -165,7 +180,7 @@ function startWhisper() {
         }
 
         if (foundNewDevice) {
-            broadcastDevices();
+            broadcastState();
         }
     });
 

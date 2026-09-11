@@ -81,6 +81,10 @@
                     ⏸️ Pause Transcription
                 </button>
             </div>
+            <div class="control-group" style="margin-top: 15px;">
+                <label>🚫 Blocked Words (comma separated)</label>
+                <input type="text" id="blocked-words" placeholder="e.g. um, uh, like" onchange="updateBlockedWords()">
+            </div>
             <p style="margin: 10px 0 0 0; font-size: 13px; color: #aaa;">Make sure your terminal has Microphone permissions! Changing mics restarts the engine automatically.</p>
         </div>
 
@@ -168,11 +172,19 @@
         const logEl = document.getElementById('log');
         const micSelect = document.getElementById('mic-select');
         const pauseBtn = document.getElementById('pause-btn');
+        const blockedWordsInput = document.getElementById('blocked-words');
         const MAX_LINES = 3;
         
         let ws;
         let isPaused = false;
         let fullTranscriptionLog = [];
+
+        function updateBlockedWords() {
+            if (ws && ws.readyState === 1) {
+                const words = blockedWordsInput.value.split(',').map(w => w.trim()).filter(w => w.length > 0);
+                ws.send(JSON.stringify({ type: 'update_blocks', blocks: words }));
+            }
+        }
 
         function changeMic(id) {
             if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'change_device', id: id }));
@@ -253,6 +265,11 @@
                         micSelect.appendChild(opt);
                     });
                     if (data.devices.length === 0) micSelect.innerHTML = '<option value="">No devices found</option>';
+                    
+                    // Update Blocked Words
+                    if (document.activeElement !== blockedWordsInput) {
+                        blockedWordsInput.value = data.blocks ? data.blocks.join(', ') : '';
+                    }
                     
                     // Update Pause state
                     isPaused = data.paused;
