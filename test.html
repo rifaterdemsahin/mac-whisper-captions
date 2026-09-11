@@ -77,6 +77,22 @@
             </label>
         </div>
 
+        <div class="controls" style="background: #2a2a35; border: 1px solid #4CAF50;">
+            <div style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
+                        OBS Browser Source URL
+                    </h3>
+                    <p style="margin: 0; font-size: 14px; color: #aaa;">Copy this path and paste it as a "Local File" Browser Source in OBS Studio:</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="obs-link" readonly value="/Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 450px; font-family: monospace;">
+                    <button onclick="copyObsLink()" style="background: #4CAF50; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Copy</button>
+                </div>
+            </div>
+        </div>
+
         <h2>Live Subtitles Preview</h2>
         <div id="subtitles-container">
             <div id="subtitles"></div>
@@ -157,6 +173,16 @@
             };
             
             ws.onerror = () => ws.close();
+        }
+
+        function copyObsLink() {
+            const input = document.getElementById('obs-link');
+            input.select();
+            document.execCommand('copy');
+            const btn = input.nextElementSibling;
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
         }
 
         connect();

@@ -30,20 +30,53 @@ This project replaces browser-based Web Speech tools with a robust, local C++ AI
    npm run build:whisper
    ```
 
-## Usage
+## 🚀 Usage
 
-1. **Start the server:**
-   ```bash
-   npm start
-   ```
-   This spawns the background whisper process, starts listening to your default microphone, and opens a WebSocket server on `ws://localhost:3000`.
+### 1. Start the Background Server
+```bash
+npm start
+```
+This spawns the background Metal-accelerated AI process and opens a WebSocket server on `ws://localhost:3000`. You can configure your microphone directly from the test page!
 
-2. **Add to OBS Studio:**
-   - In OBS, add a new **Browser Source**.
-   - Select **Local file** and point it to `public/index.html` inside this project folder.
-   - Alternatively, if you serve the `public` folder using a local web server (e.g., `npx serve public`), enter that URL (e.g., `http://localhost:5000`).
-   - Set the width and height according to your canvas (e.g., 1920x1080).
-   - Click OK. You should now see live captions appear at the bottom of your screen as you speak!
+---
+
+### 2. Connect Your Display 📺
+
+You have a few ways to view your live captions. 
+
+<details open>
+<summary><b><span style="font-size: 1.2em">🏠 Local Testing (Recommended)</span></b></summary>
+<br/>
+Open the local test page to see a live preview, change subtitle colors, and select your hardware microphone!
+<br/><br/>
+👉 <a href="file:///Users/rifaterdemsahin/projects/mac-whisper-captions/test.html"><b><code>file:///Users/rifaterdemsahin/projects/mac-whisper-captions/test.html</code></b></a>
+</details>
+
+<details open>
+<summary><b><span style="font-size: 1.2em">🎥 OBS Studio Overlay</span></b></summary>
+<br/>
+To add the captions to your stream, you need the clean overlay without the menus.
+<br/><br/>
+1. In OBS, add a new <b>Browser Source</b>.<br/>
+2. Check the box for <b>"Local file"</b>.<br/>
+3. Browse to and select this file on your Mac:
+<br/><br/>
+🎯 <b><code>/Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html</code></b>
+<br/><br/>
+*(Set the width/height to your canvas size, e.g., 1920x1080. The background is completely transparent!)*
+</details>
+
+<details open>
+<summary><b><span style="font-size: 1.2em">🌐 GitHub Pages (Project Home)</span></b></summary>
+<br/>
+The main informational page is ready to be hosted on GitHub Pages so others can find your project!
+<br/><br/>
+🌍 <a href="https://rifaterdemsahin.github.io/mac-whisper-captions/"><b><code>https://rifaterdemsahin.github.io/mac-whisper-captions/</code></b></a>
+<br/><br/>
+*(⚠️ Note: Since GitHub Pages uses HTTPS, browsers may block connections to your local `ws://localhost:3000` stream due to "mixed content" rules. Always use the local files for broadcasting!)*
+</details>
+
+---
 
 ## Project Structure
 
