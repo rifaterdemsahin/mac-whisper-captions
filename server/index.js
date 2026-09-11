@@ -89,10 +89,18 @@ function startWhisper() {
             line = line.trim();
             if (!line) continue;
             line = line.replace(/\x1B\[[0-9;]*[mK]/g, '');
+            // Extract text after the timestamp if present
             const match = line.match(/\](.*)/);
             if (match && match[1]) {
-                const text = match[1].trim();
-                if (text && !text.startsWith('[') && !text.startsWith('(')) {
+                let text = match[1].trim();
+                
+                // Filter out common blank audio / silence artifacts from Whisper
+                const tLower = text.toLowerCase();
+                if (!text || tLower === '.' || tLower === '...' || tLower.includes('[blank_audio]') || tLower.includes('(silence)') || tLower.includes('*silence*') || tLower.includes('(music)') || tLower === 'thank you.') {
+                    continue; // Skip sending empty or junk noise to OBS
+                }
+
+                if (!text.startsWith('[') && !text.startsWith('(')) {
                     process.stdout.write(`\rTranscribed: ${text.padEnd(50)}\n`);
                     broadcastText(text);
                 }

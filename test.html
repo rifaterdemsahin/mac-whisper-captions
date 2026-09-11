@@ -84,10 +84,16 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
                         OBS Browser Source URL
                     </h3>
-                    <p style="margin: 0; font-size: 14px; color: #aaa;">Copy this path and paste it as a "Local File" Browser Source in OBS Studio:</p>
+                    <p style="margin: 0; font-size: 14px; color: #aaa;">In OBS, add a Browser Source. <b style="color: #ff9800;">Uncheck "Local File"</b>, and paste this into the <b>URL</b> box:</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="obs-link" readonly value="/Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 450px; font-family: monospace;">
+                    <select id="obs-theme" onchange="updateObsLink()" style="background: #111; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 5px;">
+                        <option value="default">Default Theme</option>
+                        <option value="neon">Neon Theme</option>
+                        <option value="retro">Retro Theme</option>
+                        <option value="minimal">Minimal Theme</option>
+                    </select>
+                    <input type="text" id="obs-link" readonly value="/Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 350px; font-family: monospace;">
                     <button onclick="copyObsLink()" style="background: #4CAF50; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Copy</button>
                 </div>
             </div>
@@ -175,8 +181,25 @@
             ws.onerror = () => ws.close();
         }
 
+        function updateObsLink() {
+            const theme = document.getElementById('obs-theme').value;
+            const input = document.getElementById('obs-link');
+            const basePath = 'file:///Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html';
+            if (theme === 'default') {
+                input.value = basePath;
+            } else {
+                input.value = `${basePath}?theme=${theme}`;
+            }
+        }
+
         function copyObsLink() {
             const input = document.getElementById('obs-link');
+            
+            // Because OBS on Mac can sometimes be finicky with absolute paths vs file URIs in Local File mode,
+            // we will provide the clean file:/// URI. Wait, actually OBS Local File expects a raw path.
+            // But with URL parameters (like ?theme=neon), OBS "Local File" checkbox strips them on some versions!
+            // The safest way is to uncheck "Local File" in OBS and put the file:/// URI in the "URL" box.
+            
             input.select();
             document.execCommand('copy');
             const btn = input.nextElementSibling;
@@ -185,6 +208,8 @@
             setTimeout(() => btn.textContent = originalText, 2000);
         }
 
+        // Initialize link correctly
+        updateObsLink();
         connect();
     </script>
 </body>

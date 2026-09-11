@@ -50,3 +50,8 @@ function addCaption(text) {
 
 // Start connection
 connect();
+
+// Apply theme from URL
+const urlParams = new URLSearchParams(window.location.search);
+const theme = urlParams.get('theme') || 'default';
+document.body.classList.add(`theme-${theme}`);

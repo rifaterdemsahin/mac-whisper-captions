@@ -23,20 +23,61 @@ body, html {
 }
 
 .caption-line {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
     padding: 10px 20px;
     margin: 5px;
     border-radius: 8px;
     font-size: 32px;
     font-weight: 600;
     text-align: center;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     opacity: 0;
     transform: translateY(20px);
     animation: slideUpFadeIn 0.3s forwards;
     max-width: 90%;
     word-wrap: break-word;
+}
+
+/* Default Theme */
+body.theme-default .caption-line {
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+/* Neon Theme */
+body.theme-neon .caption-line {
+    background-color: rgba(10, 10, 10, 0.9);
+    color: #fff;
+    border: 2px solid #0ff;
+    box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
+    text-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Retro Theme */
+body.theme-retro .caption-line {
+    background-color: transparent;
+    color: #ffeb3b;
+    text-shadow: 
+        3px 3px 0 #000,
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    font-family: 'Impact', sans-serif;
+    font-size: 44px;
+    text-transform: uppercase;
+}
+
+/* Minimal Theme */
+body.theme-minimal .caption-line {
+    background-color: transparent;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    border-left: 4px solid #4CAF50;
+    border-radius: 0;
+    text-align: left;
+    align-self: flex-start; /* Align left */
+    font-weight: 400;
 }
 
 @keyframes slideUpFadeIn {
