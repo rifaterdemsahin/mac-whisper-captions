@@ -13,6 +13,7 @@ let currentDeviceId = '0';
 let availableDevices = [];
 
 let isPaused = false;
+let hasAutoSwitched = false;
 
 wss.on('connection', (ws) => {
     console.log('New WebSocket client connected');
@@ -27,6 +28,7 @@ wss.on('connection', (ws) => {
             if (data.type === 'change_device') {
                 console.log(`Changing microphone to device ID: ${data.id}`);
                 currentDeviceId = data.id.toString();
+                hasAutoSwitched = true; // Prevents auto-switching if user manually overrides
                 restartWhisper();
             } else if (data.type === 'pause') {
                 isPaused = data.paused;
@@ -129,6 +131,9 @@ function startWhisper() {
         const msg = data.toString();
         const lines = msg.split('\n');
         let foundNewDevice = false;
+        let foundScarlett = false;
+        let scarlettId = null;
+
         for (let line of lines) {
             const match = line.match(/Capture device #(\d+): '(.*)'/);
             if (match) {
@@ -137,9 +142,22 @@ function startWhisper() {
                 if (!availableDevices.find(d => d.id === id)) {
                     availableDevices.push({ id, name });
                     foundNewDevice = true;
+                    if (name.toLowerCase().includes('scarlett')) {
+                        foundScarlett = true;
+                        scarlettId = id;
+                    }
                 }
             }
         }
+
+        if (foundScarlett && !hasAutoSwitched && currentDeviceId !== scarlettId) {
+            console.log(`Auto-detected Scarlett interface (ID: ${scarlettId}). Setting as default...`);
+            currentDeviceId = scarlettId;
+            hasAutoSwitched = true;
+            restartWhisper();
+            return;
+        }
+
         if (foundNewDevice) {
             broadcastDevices();
         }
