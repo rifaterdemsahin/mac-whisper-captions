@@ -1,0 +1,18 @@
+/* 
+  Custom CSS for Mac Whisper Captions
+  You can place any custom styling overrides here.
+  This file is automatically loaded by the OBS overlay.
+
+  Example: To make a custom theme for OBS, append ?theme=custom to the URL,
+  and uncomment the block below:
+*/
+
+/*
+body.theme-custom .caption-line {
+    background-color: #ff00ff;
+    color: #ffffff;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    border-radius: 20px;
+    border: 4px dashed #ffff00;
+}
+*/

@@ -92,8 +92,9 @@
                         <option value="neon">Neon Theme</option>
                         <option value="retro">Retro Theme</option>
                         <option value="minimal">Minimal Theme</option>
+                        <option value="custom">Custom CSS Theme</option>
                     </select>
-                    <input type="text" id="obs-link" readonly value="/Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 350px; font-family: monospace;">
+                    <input type="text" id="obs-link" readonly value="http://localhost:8000/public/index.html" style="background: #111; color: #4CAF50; border: 1px solid #333; padding: 10px; border-radius: 5px; width: 350px; font-family: monospace;">
                     <button onclick="copyObsLink()" style="background: #4CAF50; color: #000; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Copy</button>
                 </div>
             </div>
@@ -123,6 +124,18 @@
         function changeMic(id) {
             if (ws && ws.readyState === 1) {
                 ws.send(JSON.stringify({ type: 'change_device', id: id }));
+            }
+        }
+
+        function updateObsLink() {
+            const theme = document.getElementById('obs-theme').value;
+            const input = document.getElementById('obs-link');
+            // Using the Python local HTTP server to avoid OBS parameter dropping issues with file:/// URIs
+            const basePath = 'http://localhost:8000/public/index.html';
+            if (theme === 'default') {
+                input.value = basePath;
+            } else {
+                input.value = `${basePath}?theme=${theme}`;
             }
         }
 
@@ -181,16 +194,6 @@
             ws.onerror = () => ws.close();
         }
 
-        function updateObsLink() {
-            const theme = document.getElementById('obs-theme').value;
-            const input = document.getElementById('obs-link');
-            const basePath = 'file:///Users/rifaterdemsahin/projects/mac-whisper-captions/public/index.html';
-            if (theme === 'default') {
-                input.value = basePath;
-            } else {
-                input.value = `${basePath}?theme=${theme}`;
-            }
-        }
 
         function copyObsLink() {
             const input = document.getElementById('obs-link');

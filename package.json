@@ -5,7 +5,8 @@
   "main": "server/index.js",
   "scripts": {
     "build:whisper": "bash scripts/build-whisper.sh",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "start:ui": "python3 serve.py"
   },
   "dependencies": {
     "ws": "^8.16.0"
