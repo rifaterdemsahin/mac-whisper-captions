@@ -1,18 +1,85 @@
 /* 
   Custom CSS for Mac Whisper Captions
-  You can place any custom styling overrides here.
-  This file is automatically loaded by the OBS overlay.
-
-  Example: To make a custom theme for OBS, append ?theme=custom to the URL,
-  and uncomment the block below:
+  ===================================
+  
+  To use any of these custom themes in OBS:
+  1. In the Control Panel, select "Custom CSS Theme" from the dropdown.
+  2. Come here and UNCOMMENT (remove the /* and */) the specific theme block you want to use.
+  3. Make sure ONLY ONE block is uncommented at a time!
 */
 
+/* ---------------------------------------------------
+   THEME OPTION 1: Cyberpunk Magenta
+--------------------------------------------------- */
 /*
 body.theme-custom .caption-line {
-    background-color: #ff00ff;
-    color: #ffffff;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background-color: rgba(255, 0, 255, 0.2) !important;
+    color: #00ffff !important;
+    font-family: 'Courier New', monospace;
+    border-radius: 5px;
+    border-left: 5px solid #ff00ff;
+    border-right: 5px solid #00ffff;
+    text-shadow: 2px 2px 5px rgba(255,0,255,0.8) !important;
+}
+*/
+
+/* ---------------------------------------------------
+   THEME OPTION 2: Hacker Green (Matrix Style)
+--------------------------------------------------- */
+/*
+body.theme-custom .caption-line {
+    background-color: rgba(0, 20, 0, 0.8) !important;
+    color: #00ff00 !important;
+    font-family: monospace;
+    border-radius: 0px;
+    border-bottom: 2px solid #00ff00;
+    text-shadow: 0px 0px 8px #00ff00 !important;
+    text-transform: lowercase;
+}
+*/
+
+/* ---------------------------------------------------
+   THEME OPTION 3: Netflix Red
+--------------------------------------------------- */
+/*
+body.theme-custom .caption-line {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: #ffffff !important;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 800;
+    border-radius: 4px;
+    border: 2px solid #e50914;
+    box-shadow: 0 4px 8px rgba(229, 9, 20, 0.4);
+    text-shadow: 2px 2px 4px #000000 !important;
+}
+*/
+
+/* ---------------------------------------------------
+   THEME OPTION 4: Ocean Blue
+--------------------------------------------------- */
+/*
+body.theme-custom .caption-line {
+    background-color: rgba(0, 50, 100, 0.7) !important;
+    color: #e0f7fa !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     border-radius: 20px;
-    border: 4px dashed #ffff00;
+    border: 2px solid #00bcd4;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.9) !important;
+}
+*/
+
+/* ---------------------------------------------------
+   THEME OPTION 5: High Contrast Yellow (Highly Readable)
+--------------------------------------------------- */
+/*
+body.theme-custom .caption-line {
+    background-color: rgba(0, 0, 0, 1.0) !important;
+    color: #ffeb3b !important;
+    font-family: Arial, sans-serif;
+    font-weight: 900;
+    font-size: 40px !important;
+    border-radius: 8px;
+    border: 4px solid #ffeb3b;
+    text-transform: uppercase;
 }
 */
