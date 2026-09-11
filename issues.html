@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Known Issues & Fixes - Mac Whisper Captions</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; background: #1a1a24; color: #eee; margin: 0; padding: 20px; }
+        .nav { background: #111; padding: 15px 20px; display: flex; gap: 20px; border-bottom: 2px solid #333; margin: -20px -20px 20px -20px;}
+        .nav a { color: #fff; text-decoration: none; font-weight: bold; }
+        .nav a:hover { color: #4CAF50; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: #4CAF50; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .issue-card { background: #2a2a35; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #e74c3c; }
+        .issue-card.fixed { border-left-color: #2ecc71; }
+        .issue-card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .badge { font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .badge.fixed { background: #2ecc71; color: #000; }
+        .code-block { background: #111; padding: 10px; border-radius: 5px; font-family: monospace; color: #4CAF50; }
+        .fix-steps { background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 5px; margin-top: 10px; border: 1px solid rgba(46, 204, 113, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">🏠 Home</a>
+        <a href="test.html">🎛️ Control Panel</a>
+        <a href="issues.html">🐛 Issues & Fixes</a>
+    </div>
+
+    <div class="container">
+        <h1>Historical Issues & Fixes Ledger</h1>
+        <p>A chronological record of the technical hurdles encountered while building the local captioning system, and the architectural solutions used to fix them.</p>
+
+        <div class="issue-card fixed">
+            <h3>OBS Stacking Lines / Not Syncing with Live Preview <span class="badge fixed">FIXED</span></h3>
+            <p><strong>The Problem:</strong> The Control Panel live preview showed single, beautifully updating lines, but OBS Studio stubbornly continued to stack duplicate sentences on top of each other.</p>
+            <p><strong>The Cause:</strong> OBS Studio has an incredibly aggressive internal browser cache. Even though we updated the deduplication logic in <code>public/app.js</code>, OBS was secretly holding onto the <em>old</em> version of the script in its memory!</p>
+            <div class="fix-steps">
+                <strong>The Fix:</strong>
+                <ol>
+                    <li>Added a "cache-buster" query parameter to the HTML tag: <code>&lt;script src="app.js?v=2"&gt;&lt;/script&gt;</code>. This forces OBS to discard the cache and download the newest script.</li>
+                    <li><strong>Manual Override:</strong> In OBS, double-click your Browser Source, scroll to the bottom, and click the <strong>"Refresh cache of current page"</strong> button.</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="issue-card fixed">
+            <h3>Subtitles Flickering & Duplicating (Sliding Window Stacking) <span class="badge fixed">FIXED</span></h3>
+            <p><strong>The Problem:</strong> Speaking "One, two, three" would output three separate stacked lines ("One", "One two", "One two three") instead of seamlessly updating a single line.</p>
+            <p><strong>The Cause:</strong> The Whisper AI uses a sliding audio window and constantly emits "partial" progressing transcripts before finalizing them.</p>
+            <div class="fix-steps">
+                <strong>The Fix:</strong>
+                <ul>
+                    <li><strong>Server Side:</strong> Modified <code>server/index.js</code> to extract the exact start-timestamp of the segment and broadcast it as a unique <code>Segment ID</code>.</li>
+                    <li><strong>Client Side:</strong> Upgraded the frontend JS to track lines by their Segment ID. Instead of appending new HTML elements, the client now targets the specific Segment ID and performs an in-place string update, eliminating all flicker.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="issue-card fixed">
+            <h3>[BLANK_AUDIO] Hallucination Spam <span class="badge fixed">FIXED</span></h3>
+            <p><strong>The Problem:</strong> Whisper aggressively hallucinates tags like <code>[BLANK_AUDIO]</code> or <code>Subtitles by Amara.org</code> during periods of dead silence.</p>
+            <p><strong>The Cause:</strong> The initial regex filter was only inspecting text <em>inside</em> timestamped blocks. Occasionally, Whisper outputs raw system text without a timestamp, allowing it to bypass the filter.</p>
+            <div class="fix-steps">
+                <strong>The Fix:</strong> Restructured the Node server to funnel 100% of standard output through a centralized aggressive Regex cleaner that strips all brackets <code>[]</code>, parentheses <code>()</code>, and asterisks <code>**</code>, completely silencing environmental noise tags.
+            </div>
+        </div>
+
+        <div class="issue-card fixed">
+            <h3>Subtitles Staying on Screen Forever <span class="badge fixed">FIXED</span></h3>
+            <p><strong>The Problem:</strong> Text remained permanently visible on the screen until you spoke again to push it upwards.</p>
+            <p><strong>The Fix:</strong> Implemented a <code>fadeTimeout</code> in JavaScript. If no WebSocket text is received for 5000ms, the CSS opacity smoothly transitions to 0, clearing the screen.</p>
+        </div>
+
+        <div class="issue-card fixed">
+            <h3>Wrong Default Microphone / Scarlett Routing <span class="badge fixed">FIXED</span></h3>
+            <p><strong>The Problem:</strong> The C++ engine defaults to <code>Device 0</code> (usually the Mac's built-in microphone), requiring manual switching every time.</p>
+            <p><strong>The Fix:</strong> Built a startup intelligence routine in the Node server that parses the C++ diagnostic stream, scans for any hardware containing the word <code>"Scarlett"</code>, and instantly re-routes the AI stream to it automatically.</p>
+        </div>
+    </div>
+</body>
+</html>
