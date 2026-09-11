@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Known Issues & Fixes - Mac Whisper Captions</title>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; background: #1a1a24; color: #eee; margin: 0; padding: 20px; }
-        .nav { background: #111; padding: 15px 20px; display: flex; gap: 20px; border-bottom: 2px solid #333; margin: -20px -20px 20px -20px;}
-        .nav a { color: #fff; text-decoration: none; font-weight: bold; }
-        .nav a:hover { color: #4CAF50; }
+        body { font-family: sans-serif; line-height: 1.6; background: #1a1e24; color: #eee; margin: 0; padding: 20px; }
+        .nav { background: #111; padding: 15px 20px; display: flex; gap: 20px; border-bottom: 3px solid #e74c3c; margin: -20px -20px 20px -20px;}
+        .nav a { color: #fff; text-decoration: none; font-weight: bold; opacity: 0.7; transition: 0.2s;}
+        .nav a:hover { opacity: 1; color: #e74c3c; }
+        .nav a.active { opacity: 1; color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 5px;}
         .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: #4CAF50; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        h1 { color: #e74c3c; border-bottom: 2px solid #333; padding-bottom: 10px; }
         .issue-card { background: #2a2a35; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #e74c3c; }
         .issue-card.fixed { border-left-color: #2ecc71; }
         .issue-card h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
         .badge { font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
         .badge.fixed { background: #2ecc71; color: #000; }
-        .code-block { background: #111; padding: 10px; border-radius: 5px; font-family: monospace; color: #4CAF50; }
+        .code-block { background: #111; padding: 10px; border-radius: 5px; font-family: monospace; color: #e74c3c; }
         .fix-steps { background: rgba(46, 204, 113, 0.1); padding: 15px; border-radius: 5px; margin-top: 10px; border: 1px solid rgba(46, 204, 113, 0.3); }
     </style>
 </head>
@@ -24,7 +25,7 @@
     <div class="nav">
         <a href="index.html">🏠 Home</a>
         <a href="test.html">🎛️ Control Panel</a>
-        <a href="issues.html">🐛 Issues & Fixes</a>
+        <a href="issues.html" class="active">🐛 Issues & Fixes</a>
     </div>
 
     <div class="container">

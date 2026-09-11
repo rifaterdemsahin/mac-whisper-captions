@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mac Whisper Captions</title>
     <style>
-        body { font-family: -apple-system, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: #f9f9f9; color: #333;}
-        .nav { background: #333; padding: 15px 20px; display: flex; gap: 20px; }
-        .nav a { color: #fff; text-decoration: none; font-weight: bold; }
-        .nav a:hover { color: #4CAF50; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        h1 { color: #222; }
-        pre { background: #e0e0e0; padding: 10px; border-radius: 5px; overflow-x: auto; }
-        code { font-family: monospace; }
-        .feature-list { margin-bottom: 20px; }
+        body { font-family: sans-serif; line-height: 1.6; background: #1a1e24; color: #eee; margin: 0; padding: 20px; }
+        .nav { background: #111; padding: 15px 20px; display: flex; gap: 20px; border-bottom: 3px solid #3498db; margin: -20px -20px 20px -20px;}
+        .nav a { color: #fff; text-decoration: none; font-weight: bold; opacity: 0.7; transition: 0.2s;}
+        .nav a:hover { opacity: 1; color: #3498db; }
+        .nav a.active { opacity: 1; color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px;}
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #3498db; }
+        h2 { color: #5dade2; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .feature-list li { margin-bottom: 10px; }
+        code { background: #111; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #3498db; }
+        .alert { background: rgba(52, 152, 219, 0.1); padding: 15px; border-left: 4px solid #3498db; border-radius: 4px; margin: 20px 0; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <a href="index.html">Home</a>
-        <a href="test.html">Test Stream</a>
+        <a href="index.html" class="active">🏠 Home</a>
+        <a href="test.html">🎛️ Control Panel</a>
+        <a href="issues.html">🐛 Issues & Fixes</a>
     </div>
     
     <div class="container">
@@ -27,9 +30,9 @@
         <p>A zero-cost, high-accuracy, ultra-low-latency local live captioning platform for Apple Silicon Macs.</p>
         
         <h2>How It Was Built (Step-by-Step Installation)</h2>
-        <div style="background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #4CAF50; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
-            <p>If you want to know exactly how this platform was constructed from scratch, here are the steps we took:</p>
-            <ol style="line-height: 1.8;">
+        <div class="alert">
+            <p style="color: #eee;">If you want to know exactly how this platform was constructed from scratch, here are the steps we took:</p>
+            <ol style="line-height: 1.8; color: #ccc;">
                 <li><strong>Initial Setup:</strong> Created the project directory, initialized `package.json`, and set up the `public` and `server` folders.</li>
                 <li><strong>C++ Compiler (CMake):</strong> Installed <code>cmake</code> via Homebrew (<code>brew install cmake</code>) as it's required for compiling modern C++ applications.</li>
                 <li><strong>Whisper.cpp Engine:</strong> Wrote a shell script (<code>scripts/build-whisper.sh</code>) to clone the <code>ggerganov/whisper.cpp</code> repository and download the lightweight <code>ggml-base.en.bin</code> AI model.</li>
