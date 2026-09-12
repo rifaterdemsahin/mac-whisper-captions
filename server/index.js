@@ -196,10 +196,18 @@ function startWhisper() {
     });
 
     whisperProcess.on('close', (code) => {
+        console.log(`Whisper process exited with code ${code}`);
         whisperProcess = null;
-        if (!isRestarting) {
-            console.log(`whisper process exited with code ${code}. Restarting in 3 seconds...`);
-            setTimeout(startWhisper, 3000);
+        if (isRestarting) {
+            startWhisper();
+        } else {
+            console.error('Whisper stream crashed unexpectedly (possibly invalid microphone). Falling back to device 0...');
+            currentDeviceId = '0';
+            hasAutoSwitched = true;
+            // Add a small delay to prevent rapid crash loops
+            setTimeout(() => {
+                restartWhisper();
+            }, 2000);
         }
     });
 }
